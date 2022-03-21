@@ -8,14 +8,17 @@ Placeholder
 ## Updating Storefront information.
 Placeholder
 
+## Checking a storefront exists.
+Placeholder
 
 ## Adding product listing to Storefront.
 Placeholder
 
-
 ## Updating product listing in Storefront.
 Placeholder
 
+## Check a product listing exists.
+Placeholder
 
 ## Get product listing count from Storefront.
 Placeholder
