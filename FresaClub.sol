@@ -102,7 +102,7 @@
 
         mapping(address => mapping(uint => Product)) internal products;
         mapping(address => uint) internal productCount;
-
+ 
         function writeProduct( 
             string memory _name,
             string memory _image,
@@ -189,8 +189,16 @@
             }
         }
 
-        function readProductExists(address _storefront, uint index) public view returns(bool productExists){
-            return (products[_storefront][index].owner == _storefront);
+        function readProductExists(address _storefront, uint _index) public view returns(bool productExists){
+            return (products[_storefront][_index].owner == _storefront);
+        }
+
+        function readProductStock(address _storefront, uint _index) private view returns(uint _stockCount){
+            return (products[_storefront][_index].qty);
+        }
+
+        function validateItemPrice(address _storeFront, uint _index, uint _price) private view returns(bool _validate){
+            return (products[_storeFront][_index].price == _price);
         }
 
         function readProductCount(address _storeFront) public view returns(uint storeProductCount){
@@ -227,6 +235,119 @@
             address storefront
         ){
             return favourites[msg.sender][index].storefront;
+        }
+
+
+        struct OrderItem {
+            string ProductName;
+            uint Quantity;
+            uint CusdValue;
+            address Storefront;
+            uint index;
+        }
+
+        struct Order {
+            address payable Storefront;
+            uint OrderID;
+            uint TotalItems;
+            uint TotalValue;
+            uint Timestamp;
+            address CustomerAddress;
+        }
+
+        // Vendor -> Order ID
+        mapping(address => mapping(uint => Order)) internal orders;
+
+        // Vendor -> Order Items
+        mapping(address => mapping(uint => mapping(uint => OrderItem))) internal orderItems;
+
+        // Vendor -> Order Count
+        mapping(address => uint) internal orderCount;
+        
+        function writeOrder(address payable _storefront, OrderItem[] memory _items) public{
+            // Create Order Items.
+            uint _totalValue = 0;
+            uint _orderCount = orderCount[_storefront];
+
+            if(_items.length == 0) revert("You have no items in your order, consider adding some before checking out?");
+
+            // Loop through order items and check each item is valid.
+            for(uint i=0; i<_items.length; i++){
+                if(validateOrderItem(_items[i])){
+                    _totalValue += _items[i].CusdValue;
+                    orderItems[_storefront][_orderCount][i] = OrderItem(
+                        _items[i].ProductName,
+                        _items[i].Quantity,
+                        _items[i].CusdValue,
+                        _items[i].Storefront,
+                        _items[i].index
+                    );
+                }else{
+                    revert("A item in your order failed validity checks, please check your order and try again.");
+                }
+            } 
+            
+            orders[_storefront][_orderCount] = Order(
+                _storefront,
+                _orderCount,
+                _items.length,
+                _totalValue,
+                block.timestamp,
+                msg.sender
+            );
+
+            // Increment Order Counts.
+            fresaSaleCount++;
+            orderCount[_storefront] = _orderCount + 1;
+
+            // Decrease Quantity.
+        }
+
+        function readOrder(address _customer, uint _orderid) public view returns(
+            uint OrderId,
+            uint TotalItems,
+            uint TotalValue,
+            uint Timestamp,
+            address customerAddress
+        ){
+            return(
+                orders[_customer][_orderid].OrderID,
+                orders[_customer][_orderid].TotalItems,
+                orders[_customer][_orderid].TotalValue,
+                orders[_customer][_orderid].Timestamp,
+                orders[_customer][_orderid].CustomerAddress
+            );
+        }
+
+
+        function readOrderItems(address _customer, uint _orderid, uint _itemid) public view returns(
+            string memory _productName,
+            uint _Quantity,
+            uint _CusdValue,
+            address _StoreFront,
+            uint _productIndex 
+        ){
+            return(
+                orderItems[_customer][_orderid][_itemid].ProductName,
+                orderItems[_customer][_orderid][_itemid].Quantity,
+                orderItems[_customer][_orderid][_itemid].CusdValue,
+                orderItems[_customer][_orderid][_itemid].Storefront,
+                orderItems[_customer][_orderid][_itemid].index
+            );
+        }
+
+        function validateOrderItem(OrderItem memory _orderItem) private view returns(bool _valid){
+            // Validate Product Exists
+            if(!readProductExists(_orderItem.Storefront, _orderItem.index)) return false;
+
+            // Validate Product In Stock
+            if(readProductStock(_orderItem.Storefront, _orderItem.index) < _orderItem.Quantity) return false;
+
+            // Validate Vendor Active
+            if(!storeFronts[_orderItem.Storefront].store_active) return false;
+
+            // Validate Product Price
+            if(!validateItemPrice(_orderItem.Storefront, _orderItem.index, _orderItem.CusdValue)) return false;
         }
 
         // Fresa Network Stats.
