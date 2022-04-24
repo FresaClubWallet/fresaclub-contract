@@ -123,6 +123,99 @@
 		"inputs": [
 			{
 				"internalType": "address",
+				"name": "_customer",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_orderid",
+				"type": "uint256"
+			}
+		],
+		"name": "readOrder",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "OrderId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "TotalItems",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "TotalValue",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "Timestamp",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "customerAddress",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_customer",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_orderid",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_itemid",
+				"type": "uint256"
+			}
+		],
+		"name": "readOrderItems",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "_productName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_Quantity",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_CusdValue",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "_StoreFront",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_productIndex",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
 				"name": "_storeFront",
 				"type": "address"
 			},
@@ -206,7 +299,7 @@
 			},
 			{
 				"internalType": "uint256",
-				"name": "index",
+				"name": "_index",
 				"type": "uint256"
 			}
 		],
@@ -303,6 +396,51 @@
 			}
 		],
 		"name": "writeFavourite",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address payable",
+				"name": "_storefront",
+				"type": "address"
+			},
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "ProductName",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "Quantity",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "CusdValue",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "Storefront",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct Fresaclub.OrderItem[]",
+				"name": "_items",
+				"type": "tuple[]"
+			}
+		],
+		"name": "writeOrder",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
