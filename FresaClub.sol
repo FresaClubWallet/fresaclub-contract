@@ -264,7 +264,7 @@
         // Vendor -> Order Count
         mapping(address => uint) internal orderCount;
         
-        function writeOrder(address payable _storefront, OrderItem[] memory _items) public{
+        function writeOrder(address payable _storefront, OrderItem[] memory _items) public payable{
             // Create Order Items.
             uint _totalValue = 0;
             uint _orderCount = orderCount[_storefront];
@@ -282,6 +282,10 @@
                         _items[i].Storefront,
                         _items[i].index
                     );
+                    uint _stock = products[_storefront][_items[i].index].qty;
+                    uint _sold = products[_storefront][_items[i].index].sold;
+                    products[_storefront][_items[i].index].qty = _stock - _items[i].Quantity;
+                    products[_storefront][_items[i].index].sold = _sold + _items[i].Quantity;
                 }else{
                     revert("A item in your order failed validity checks, please check your order and try again.");
                 }
@@ -300,13 +304,20 @@
             fresaSaleCount++;
             orderCount[_storefront] = _orderCount + 1;
 
-            // Decrease Quantity.
+            require(
+                IERC20Token(cUsdTokenAddress).transferFrom(
+                    msg.sender,
+                    _storefront,
+                    _totalValue
+                ),
+                "Transfer for order has failed, please check your Cusd balance and try again."
+            );
         }
 
         function readOrder(address _customer, uint _orderid) public view returns(
             uint OrderId,
             uint TotalItems,
-            uint TotalValue,
+            uint TotalValue,    
             uint Timestamp,
             address customerAddress
         ){
@@ -348,6 +359,8 @@
 
             // Validate Product Price
             if(!validateItemPrice(_orderItem.Storefront, _orderItem.index, _orderItem.CusdValue)) return false;
+
+            return true;
         }
 
         // Fresa Network Stats.
@@ -359,7 +372,7 @@
             return fresaStoreCount;
         }
 
-        function readFresaSaleCount() public view returns(uint NetworkProductCount){
+        function readFresaSaleCount() public view returns(uint NetworkSaleCount){
             return fresaSaleCount;
         }
     }

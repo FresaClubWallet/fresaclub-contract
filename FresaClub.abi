@@ -99,7 +99,7 @@
 		"outputs": [
 			{
 				"internalType": "uint256",
-				"name": "NetworkProductCount",
+				"name": "NetworkSaleCount",
 				"type": "uint256"
 			}
 		],
@@ -442,7 +442,7 @@
 		],
 		"name": "writeOrder",
 		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "payable",
 		"type": "function"
 	},
 	{
