@@ -31,6 +31,14 @@
 
         mapping(address => StoreFront) internal storeFronts;
 
+        // modifier to check if store exists
+        modifier readStoreFrontExists(address _storeFront) {
+            require (storeFronts[_storeFront].owner == _storeFront, 
+                "No Fresa Storefront was found at this address."    
+            );
+            _;
+        }
+
         function writeStoreFront(
             string memory _storeName, 
             string memory _storeImage,  
@@ -39,8 +47,10 @@
             string memory _storeLong, 
             bool _storeActive 
         ) public {
-            if(!readStoreFrontExisits(msg.sender))  fresaStoreCount++; 
-
+            require (storeFronts[msg.sender].owner != msg.sender, 
+                "A Fresa Storefront is already registered with this address"
+            );
+            fresaStoreCount++;
             if(bytes(_storeName).length > 0 && bytes(_storeImage).length > 0 && bytes(_storeDescription).length > 0){
                 storeFronts[msg.sender] = StoreFront(
                     payable(msg.sender),
@@ -51,16 +61,12 @@
                     _storeLong,
                     _storeActive
                 );
-            }else{
+            } else {
                 revert("A Fresa storefront can not be created without a name, description & image.");
             }
         }
 
-        function readStoreFrontExisits(address _storeFront) public view returns(bool){
-            return (storeFronts[_storeFront].owner == _storeFront);
-        }
-
-        function readStoreFront(address _storeFront) public view returns (
+        function readStoreFront(address _storeFront) public view readStoreFrontExists(msg.sender) returns (
             address payable,
             string memory storeName, 
             string memory storeImage, 
@@ -70,21 +76,17 @@
             bool _storeActive,
             uint _totalProducts
         ) {
-            if(readStoreFrontExisits(_storeFront)){
-                StoreFront memory _sf = storeFronts[_storeFront];
-                return (
-                    _sf.owner, 
-                    _sf.store_name, 
-                    _sf.store_image, 
-                    _sf.store_description,
-                    _sf.store_lat,
-                    _sf.store_long,
-                    _sf.store_active,
-                    readProductCount(_sf.owner)
-                );
-            }else{
-                revert("No Fresa Storefront was found at this address.");
-            }
+            StoreFront memory _sf = storeFronts[_storeFront];
+            return (
+                _sf.owner, 
+                _sf.store_name, 
+                _sf.store_image, 
+                _sf.store_description,
+                _sf.store_lat,
+                _sf.store_long,
+                _sf.store_active,
+                readProductCount(_sf.owner)
+            );
         }
 
         struct Product {
@@ -110,28 +112,24 @@
             uint _price,
             uint _qty,
             bool _active
-        ) public {
-            if(readStoreFrontExisits(msg.sender) ){
-                if(bytes(_name).length > 0 && bytes(_image).length > 0 && bytes(_description).length > 0 && _price > 0){
-                    uint _sold = 0;
-                    uint _productCount = readProductCount(msg.sender);
-                    products[msg.sender][_productCount] = Product(
-                        payable(msg.sender),
-                        _name,
-                        _image,
-                        _description,
-                        _price,
-                        _qty,
-                        _sold,
-                        _productCount, // Where this image will sit in the dataset.
-                        _active
-                    );
-                    productCount[msg.sender] = _productCount + 1;
-                }else{
-                    revert("A name, description, image and valid price is required to add a product to your storefront.");
-                }
+        ) public readStoreFrontExists(msg.sender) {
+            if(bytes(_name).length > 0 && bytes(_image).length > 0 && bytes(_description).length > 0 && _price > 0){
+                uint _sold = 0;
+                uint _productCount = readProductCount(msg.sender);
+                products[msg.sender][_productCount] = Product(
+                    payable(msg.sender),
+                    _name,
+                    _image,
+                    _description,
+                    _price,
+                    _qty,
+                    _sold,
+                    _productCount, // Where this image will sit in the dataset.
+                    _active
+                );
+                productCount[msg.sender] = _productCount + 1;
             }else{
-                revert("A Storefront is required to add product listings.");
+                revert("A name, description, image and valid price is required to add a product to your storefront.");
             }
         }
 
@@ -201,12 +199,8 @@
             return (products[_storeFront][_index].price == _price);
         }
 
-        function readProductCount(address _storeFront) public view returns(uint storeProductCount){
-            if(readStoreFrontExisits(_storeFront) ){
+        function readProductCount(address _storeFront) public view readStoreFrontExists(msg.sender) returns(uint storeProductCount){
                 return productCount[_storeFront];
-            }else{
-                revert("No fresa storefront found at provided address.");
-            }
         }
 
         struct Favourite{
