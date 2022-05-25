@@ -47,10 +47,9 @@
             string memory _storeLong, 
             bool _storeActive 
         ) public {
-            require (storeFronts[msg.sender].owner != msg.sender, 
-                "A Fresa Storefront is already registered with this address"
-            );
-            fresaStoreCount++;
+            if (storeFronts[msg.sender].owner != msg.sender)
+                fresaStoreCount++;
+                
             if(bytes(_storeName).length > 0 && bytes(_storeImage).length > 0 && bytes(_storeDescription).length > 0){
                 storeFronts[msg.sender] = StoreFront(
                     payable(msg.sender),
