@@ -49,20 +49,19 @@
         ) public {
             if (storeFronts[msg.sender].owner != msg.sender)
                 fresaStoreCount++;
-                
-            if(bytes(_storeName).length > 0 && bytes(_storeImage).length > 0 && bytes(_storeDescription).length > 0){
-                storeFronts[msg.sender] = StoreFront(
-                    payable(msg.sender),
-                    _storeName,
-                    _storeImage,
-                    _storeDescription,
-                    _storeLat,
-                    _storeLong,
-                    _storeActive
-                );
-            } else {
-                revert("A Fresa storefront can not be created without a name, description & image.");
-            }
+
+            require (bytes(_storeName).length > 0 && bytes(_storeImage).length > 0 && bytes(_storeDescription).length > 0,
+                "A Fresa storefront can not be created without a name, description & image."    
+            );
+            storeFronts[msg.sender] = StoreFront(
+                payable(msg.sender),
+                _storeName,
+                _storeImage,
+                _storeDescription,
+                _storeLat,
+                _storeLong,
+                _storeActive
+            );
         }
 
         function readStoreFront(address _storeFront) public view readStoreFrontExists(msg.sender) returns (
@@ -112,24 +111,23 @@
             uint _qty,
             bool _active
         ) public readStoreFrontExists(msg.sender) {
-            if(bytes(_name).length > 0 && bytes(_image).length > 0 && bytes(_description).length > 0 && _price > 0){
-                uint _sold = 0;
-                uint _productCount = readProductCount(msg.sender);
-                products[msg.sender][_productCount] = Product(
-                    payable(msg.sender),
-                    _name,
-                    _image,
-                    _description,
-                    _price,
-                    _qty,
-                    _sold,
-                    _productCount, // Where this image will sit in the dataset.
-                    _active
-                );
-                productCount[msg.sender] = _productCount + 1;
-            }else{
-                revert("A name, description, image and valid price is required to add a product to your storefront.");
-            }
+            require (bytes(_name).length > 0 && bytes(_image).length > 0 && bytes(_description).length > 0 && _price > 0,
+                "A name, description, image and valid price is required to add a product to your storefront."
+            );
+            uint _sold = 0;
+            uint _productCount = readProductCount(msg.sender);
+            products[msg.sender][_productCount] = Product(
+                payable(msg.sender),
+                _name,
+                _image,
+                _description,
+                _price,
+                _qty,
+                _sold,
+                _productCount, // Where this image will sit in the dataset.
+                _active
+            );
+            productCount[msg.sender] = _productCount + 1;
         }
 
         function editProduct(
@@ -140,26 +138,23 @@
             uint _price,
             uint _qty,
             bool _active
-        ) public{
-            if(readProductExists(msg.sender, _index)){
-                Product memory _temp = products[msg.sender][_index];
-                products[msg.sender][_index] = Product(
-                    payable(msg.sender),
-                    _name,
-                    _image,
-                    _description,
-                    _price,
-                    _qty,
-                    _temp.sold,
-                    _index,
-                    _active
-                );  
-            }else{
-                revert("No product with the given index was found at this Fresa storefront.");
-            }
+        ) public readProductExists(msg.sender, _index) {
+            Product memory _temp = products[msg.sender][_index];
+            products[msg.sender][_index] = Product(
+                payable(msg.sender),
+                _name,
+                _image,
+                _description,
+                _price,
+                _qty,
+                _temp.sold,
+                _index,
+                _active
+            );
         }
 
-        function readProduct(address _storeFront, uint _productIndex) public view returns (
+        function readProduct(address _storeFront, uint _productIndex) public view readProductExists(_storeFront, _productIndex) 
+        returns (
             address payable,
             string memory productName,
             string memory productImage,  
@@ -169,25 +164,27 @@
             uint productQty,
             bool productActive
         ) {
-            if(readProductExists(_storeFront, _productIndex)){
-                Product memory _p = products[_storeFront][_productIndex];
-                return (
-                    _p.owner, 
-                    _p.name, 
-                    _p.image, 
-                    _p.description, 
-                    _p.price,
-                    _p.sold,
-                    _p.qty,
-                    _p.active
-                );
-            }else{
-                revert("No product found in storefront of given address with index provided.");
-            }
+            Product memory _p = products[_storeFront][_productIndex];
+            return (
+                _p.owner, 
+                _p.name, 
+                _p.image, 
+                _p.description, 
+                _p.price,
+                _p.sold,
+                _p.qty,
+                _p.active
+            );
         }
 
-        function readProductExists(address _storefront, uint _index) public view returns(bool productExists){
-            return (products[_storefront][_index].owner == _storefront);
+        // function readProductExists(address _storefront, uint _index) public view returns(bool productExists){
+        //     return (products[_storefront][_index].owner == _storefront);
+        // }
+        modifier readProductExists(address _storefront, uint _index) {
+            require (products[_storefront][_index].owner == _storefront, 
+                "No product found in storefront of given address with index provided."
+            );
+            _;
         }
 
         function readProductStock(address _storefront, uint _index) private view returns(uint _stockCount){
@@ -342,7 +339,8 @@
 
         function validateOrderItem(OrderItem memory _orderItem) private view returns(bool _valid){
             // Validate Product Exists
-            if(!readProductExists(_orderItem.Storefront, _orderItem.index)) return false;
+            // if(!readProductExists(_orderItem.Storefront, _orderItem.index)) return false;
+            require (!(products[_orderItem.Storefront][_orderItem.index].owner == _orderItem.Storefront));
 
             // Validate Product In Stock
             if(readProductStock(_orderItem.Storefront, _orderItem.index) < _orderItem.Quantity) return false;
