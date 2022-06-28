@@ -30,10 +30,18 @@
         }
 
         mapping(address => StoreFront) internal storeFronts;
+        mapping(uint => address) internal storeFrontsIndex;
 
         // modifier to check if store exists
         modifier readStoreFrontExists(address _storeFront) {
             require (storeFronts[_storeFront].owner == _storeFront, 
+                "No Fresa Storefront was found at this address."    
+            );
+            _;
+        }
+        modifier readStoreFrontExistsByIndex(uint _index){
+            address _add = storeFrontsIndex[_index];
+            require (storeFronts[_add].owner == _add, 
                 "No Fresa Storefront was found at this address."    
             );
             _;
@@ -47,8 +55,10 @@
             string memory _storeLong, 
             bool _storeActive 
         ) public {
-            if (storeFronts[msg.sender].owner != msg.sender)
+            if (storeFronts[msg.sender].owner != msg.sender){
+                storeFrontsIndex[fresaStoreCount] = msg.sender;
                 fresaStoreCount++;
+            }
 
             require (bytes(_storeName).length > 0 && bytes(_storeImage).length > 0 && bytes(_storeDescription).length > 0,
                 "A Fresa storefront can not be created without a name, description & image."    
@@ -61,6 +71,30 @@
                 _storeLat,
                 _storeLong,
                 _storeActive
+            );
+        }
+
+        function readStoreFrontAtIndex(uint _index) public view readStoreFrontExistsByIndex(_index) returns(
+            address payable,
+            string memory storeName, 
+            string memory storeImage, 
+            string memory storeDescription, 
+            string memory storeLat, 
+            string memory storeLong,
+            bool _storeActive,
+            uint _totalProducts
+        ){
+            address _sfbi = storeFrontsIndex[_index];
+            StoreFront memory _sf = storeFronts[_sfbi];
+            return (
+                _sf.owner, 
+                _sf.store_name, 
+                _sf.store_image, 
+                _sf.store_description,
+                _sf.store_lat,
+                _sf.store_long,
+                _sf.store_active,
+                readProductCount(_sf.owner)
             );
         }
 
@@ -128,6 +162,7 @@
                 _active
             );
             productCount[msg.sender] = _productCount + 1;
+            fresaProductCount++;
         }
 
         function editProduct(
