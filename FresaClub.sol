@@ -199,35 +199,6 @@
                 return productCount[_storeFront];
         }
 
-        struct Favourite{
-            address payable owner;
-            address storefront;
-        }
-
-        mapping(address => mapping(uint => Favourite)) internal favourites;
-        mapping(address => uint) internal favouriteCount;
-
-        function writeFavourite(address _storefront) public{
-            uint _favCount = readFavouriteCount(payable(msg.sender));
-
-            favourites[msg.sender][_favCount] = Favourite(
-                payable(msg.sender),
-                _storefront
-            );
-            favouriteCount[_storefront]++;
-        }
-
-        function readFavouriteCount(address payable _storeFront) public view returns(uint FavouriteCount){
-            return favouriteCount[_storeFront];
-        }
-
-        function readFavourite(uint index) public view returns(
-            address storefront
-        ){
-            return favourites[msg.sender][index].storefront;
-        }
-
-
         struct OrderItem {
             string ProductName;
             uint Quantity;
@@ -360,7 +331,7 @@
         }
 
         function readFresaProductCount() public view returns(uint NetworkProductCount){
-            return fresaStoreCount;
+            return fresaProductCount;
         }
 
         function readFresaSaleCount() public view returns(uint NetworkSaleCount){
