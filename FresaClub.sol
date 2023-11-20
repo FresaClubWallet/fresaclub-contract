@@ -13,20 +13,20 @@
     }
 
     contract Fresaclub {
-        uint private fresaStoreCount = 0;
-        uint private fresaProductCount = 0;
-        uint private fresaSaleCount = 0;
+        uint private fresaStoreCount;
+        uint private fresaProductCount;
+        uint private fresaSaleCount;
 
         address internal cUsdTokenAddress = 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
 
         struct StoreFront {
+            bool store_active; // whether or not this store is currently trading on the fresa platform.
             address payable owner;
             string store_name; // The trading name of the storefront.
             string store_image; // A Profile picture for the storefront.
             string store_description; // A short description of the storefront.
             string store_lat; // The latitude of the storefront
             string store_long; // The Longitude of the storefront.
-            bool store_active; // whether or not this store is currently trading on the fresa platform.
         }
 
         mapping(address => StoreFront) internal storeFronts;
@@ -64,13 +64,13 @@
                 "A Fresa storefront can not be created without a name, description & image."    
             );
             storeFronts[msg.sender] = StoreFront(
+                _storeActive,
                 payable(msg.sender),
                 _storeName,
                 _storeImage,
                 _storeDescription,
                 _storeLat,
-                _storeLong,
-                _storeActive
+                _storeLong
             );
         }
 
@@ -123,6 +123,7 @@
 
         struct Product {
             address payable owner;
+            bool active;
             string name;
             string image;
             string description;     
@@ -130,7 +131,6 @@
             uint qty;
             uint sold;
             uint index;
-            bool active;
         }
 
 
@@ -148,18 +148,18 @@
             require (bytes(_name).length > 0 && bytes(_image).length > 0 && bytes(_description).length > 0 && _price > 0,
                 "A name, description, image and valid price is required to add a product to your storefront."
             );
-            uint _sold = 0;
+            uint _sold;
             uint _productCount = readProductCount(msg.sender);
             products[msg.sender][_productCount] = Product(
                 payable(msg.sender),
+                _active,
                 _name,
                 _image,
                 _description,
                 _price,
                 _qty,
                 _sold,
-                _productCount, // Where this image will sit in the dataset.
-                _active
+                _productCount // Where this image will sit in the dataset.
             );
             productCount[msg.sender] = _productCount + 1;
             fresaProductCount++;
@@ -177,14 +177,14 @@
             Product memory _temp = products[msg.sender][_index];
             products[msg.sender][_index] = Product(
                 payable(msg.sender),
+                _active,
                 _name,
                 _image,
                 _description,
                 _price,
                 _qty,
                 _temp.sold,
-                _index,
-                _active
+                _index
             );
         }
 
@@ -262,13 +262,13 @@
         
         function writeOrder(address payable _storefront, OrderItem[] memory _items) public payable{
             // Create Order Items.
-            uint _totalValue = 0;
+            uint _totalValue;
             uint _orderCount = orderCount[_storefront];
 
             if(_items.length == 0) revert("You have no items in your order, consider adding some before checking out?");
 
             // Loop through order items and check each item is valid.
-            for(uint i=0; i<_items.length; i++){
+            for(uint i; i<_items.length; ++i){
                 if(validateOrderItem(_items[i])){
                     _totalValue += _items[i].CusdValue;
                     orderItems[_storefront][_orderCount][i] = OrderItem(
