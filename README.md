@@ -1,40 +1,66 @@
-# FresaClub Smart contract implementation.
-This readme will go over some of the basics of how to utilize the smart contract written for FresaClub.
+## Foundry
 
+**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
-## Creating a new storefront.
-Placeholder
+Foundry consists of:
 
-## Updating Storefront information.
-Placeholder
+-   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+-   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+-   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
+-   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
-## Checking a storefront exists.
-Placeholder
+## Documentation
 
-## Adding product listing to Storefront.
-Placeholder
+https://book.getfoundry.sh/
 
-## Updating product listing in Storefront.
-Placeholder
+## Usage
 
-## Check a product listing exists.
-Placeholder
+### Build
 
-## Get product listing count from Storefront.
-Placeholder
+```shell
+$ forge build
+```
 
+### Test
 
-## Get product listing from Storefront
-Placeholder
+```shell
+$ forge test
+```
 
+### Format
 
-## Get total number of stores on Fresa network.
-Placeholder
+```shell
+$ forge fmt
+```
 
+### Gas Snapshots
 
-## Purchase items
-Placeholder
+```shell
+$ forge snapshot
+```
 
+### Anvil
 
+```shell
+$ anvil
+```
 
--- IndieBlocks
+### Deploy
+
+```shell
+$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```
+
+### Cast
+
+```shell
+$ cast <subcommand>
+```
+
+### Help
+
+```shell
+$ forge --help
+$ anvil --help
+$ cast --help
+```
